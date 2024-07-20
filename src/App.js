@@ -2,28 +2,63 @@ import './App.css';
 import { MathJax } from 'better-react-mathjax';
 import { useState } from 'react';
 import { gaussianElimination } from './gaussianElimination.mjs';
+import { create, all } from 'mathjs'
+
+const config = {
+    number: 'Fraction'
+}
+
+const math = create(all, config)
 
 function App() {
 
   const [ matrix, setMatrix ] = useState(Array(3).fill().map(() => Array(4).fill(0)))
   const [ steps, setSteps ] = useState([])
+  const [ stepsShown, setStepsShown ] = useState(0)
 
   const handleChange = (row, col, event) => {
     let { value } = event.target;
-    
-    const newMatrix = matrix.map((r, rowIndex) =>
-      rowIndex === row
-        ? r.map((cell, colIndex) =>
-            colIndex === col ? value : cell
-          )
-        : r
-    );
-    setMatrix(newMatrix);
-  };
+
+    if (/^[0-9./*+\-()]*$/.test(value)) {
+      const newMatrix = matrix.map((r, rowIndex) =>
+        rowIndex === row
+          ? r.map((cell, colIndex) =>
+              colIndex === col ? value : cell
+            )
+          : r
+      )
+      setMatrix(newMatrix)
+    }
+  }
+
+  const removeBlank = (row, col) => {
+    if (matrix[row][col] === '') {
+      const newMatrix = matrix.map((r, rowIndex) =>
+        rowIndex === row
+          ? r.map((cell, colIndex) =>
+              colIndex === col ? '0' : cell
+            )
+          : r
+      )
+      setMatrix(newMatrix)
+    }
+  }
 
   const calculate = () => {
     const newMatrix = [...matrix]
-    setSteps(gaussianElimination(newMatrix))
+
+    try {
+      newMatrix.map((row, i) => (
+        row.map((entry, k) => (
+            matrix[i][k] = math.evaluate(String(entry))
+        ))
+      ))
+      setSteps(gaussianElimination(newMatrix))
+      stepsShown(0)
+    } catch {
+      console.log('invalid matrix')
+    }
+    
   }
 
   const handleChangeRows = (event) => {
@@ -54,6 +89,14 @@ function App() {
     })
   }
 
+  const nextStep = () => {
+    setStepsShown(stepsShown + 1)
+  }
+
+  const showAllSteps = () => {
+    setStepsShown(steps.length)
+  }
+
   return (
     <div className='page'>
       <h1>Step-by-Step Gaussian Elimination</h1>
@@ -62,7 +105,7 @@ function App() {
         <thead>
           <tr>
           { matrix[0].map((_, i) => (
-            i === matrix[0].length - 1 ? <th key={i}><MathJax>{`$$b$$`}</MathJax></th> : <th key={i}><MathJax>{`$$x_${i + 1}$$`}</MathJax></th>
+            i === matrix[0].length - 1 ? <th key={i}><MathJax>{`$$b$$`}</MathJax></th> : <th key={i}><MathJax>{` $$ x_${i + 1} $$ `}</MathJax></th>
           ))
           }
           </tr>
@@ -77,6 +120,8 @@ function App() {
                   value={entry}
                   className='matrix-input-field'
                   onChange={(event) => handleChange(i, j, event)}
+                  onFocus={(e) => e.target.select()}
+                  onBlur={() => removeBlank(i, j)}
                 />
                 </td>
               ))
@@ -106,17 +151,25 @@ function App() {
       </div>
       <button onClick={calculate}>Calculate!</button>
 
-      <MathJax style={{display: 'none'}}>{"$$\\class{highlight}{x}$$"}</MathJax>
-
-      <h2>Solution</h2>
       {
-        steps.map((step) => (
-          <div key={step.mathJax}>
-            <MathJax className='description'>{step.description}</MathJax>
-            <MathJax>{step.mathJax}</MathJax>
+        (steps.length !== 0)
+        && (
+          <div>
+            <h2>Solution</h2>
+            {
+              steps.map((step, i) => (
+                  <div key={step.mathJax} >
+                    <MathJax className='description'>{step.description}</MathJax>
+                    <MathJax>{step.mathJax}</MathJax>
+                  </div>
+              ))
+            }
+            <button onClick={nextStep}>Next Step</button>
+            <button onClick={showAllSteps}>Show All Steps</button>
           </div>
-        ))
+        )
       }
+       <MathJax style={{display: 'none'}}>{"$$\\class{highlight}{x}$$"}</MathJax>
     </div>
   );
 }

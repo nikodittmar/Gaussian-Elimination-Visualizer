@@ -30,15 +30,27 @@ export function matrixToMathJax(matrix, highlightRow, highlightCol) {
     return mathJax
 }
 
+function vectorToMathJax(vector) {
+    let mathJax = '\\left[\\begin{array}{@{}c@{}}'
+
+    mathJax += vector.map((row, i) => (
+        numberToMathJax(vector[i])
+    )).join('\\\\')
+
+    mathJax += '\\end{array}\\right]'
+
+    return mathJax
+}
+
 export function gaussianElimination(matrix) {
     let steps = []
 
     function evaluateMatrix(matrix) {
-        matrix.map((row, i) => {
-            row.map((entry, k) => {
+        matrix.map((row, i) => (
+            row.map((entry, k) => (
                 matrix[i][k] = math.fraction(String(math.evaluate(String(entry))))
-            })
-        })
+            ))
+        ))
     }
 
     function forwardElimination(matrix) {
@@ -71,20 +83,107 @@ export function gaussianElimination(matrix) {
         }
     }
 
-    function backSubstitution(matrix) {
-        let pivot = matrix[0].length - 2
-
+    function backwardSubstitution(matrix) {
         for (let row = matrix.length - 1; row >= 0; row--) {
-            if (!math.equal(matrix[row][pivot], 0)) {
-                for (let col = pivot; col >= 0; col--) {
-                    if (math.equal(matrix[row][col], 0)) {
-                        pivot = col + 1
-                        break
+            for (let col = 0; col < matrix[0].length - 1; col++) {
+                if (!math.equal(matrix[row][col], 0)) {
+                    for (let k = row - 1; k >= 0; k--) {
+                        if (!math.equal(matrix[k][col], 0)) {
+                            addRows(matrix, k, row, math.multiply(matrix[k][col], -1), `Eliminate \\(${numberToMathJax(matrix[k][col])}\\) from row ${k + 1} by adding \\(${numberToMathJax(math.multiply(matrix[k][col], -1))}\\) times row ${row + 1} to it.`)
+                            break
+                        }
                     }
+                    break
                 }
-
-                
             }
+        }
+    }
+
+    function isConsistent(matrix) {
+        for (let row = matrix.length - 1; row >= 0; row--) {
+
+            if (math.equal(matrix[row][matrix[0].length - 1], 0)) {
+                continue
+            }
+
+            let hasPivot = false
+
+            for (let col = 0; col < matrix[0].length - 1; col++) {
+                if (!math.equal(matrix[row][col], 0)) {
+                    hasPivot = true
+                    break
+                }
+            }
+
+            if (!hasPivot) {
+                steps.push({ mathJax: '$$' + matrixToMathJax(matrix, row, matrix[0].length - 1) + '$$', description: 'The system has no solutions because there is a pivot in the output column.'})
+                return false
+            }
+        }
+        return true
+    }
+
+    function findSolution(matrix) {
+        let pivots = []
+        let freeCols = Array(matrix[0].length - 1).fill(true)
+
+        for (let row = 0; row < matrix.length; row++) {
+            for (let col = 0; col < matrix[0].length - 1; col++) {
+                if (!math.equal(matrix[row][col], 0)) {
+                    pivots.push({ row, col })
+                    freeCols[col] = false
+                    break
+                }
+            }
+        }
+
+        if (pivots.length === matrix[0].length - 1) {
+            let solutions = Array(matrix[0].length - 1).fill(0)
+
+            for (let i = 0; i < pivots.length; i++) {
+                solutions[pivots[i].col] = matrix[pivots[i].row][matrix[0].length - 1]
+            }
+
+            steps.push({ mathJax: '$$\\vec{x}=' + vectorToMathJax(solutions) + '$$', description: 'Solution.'})
+        } else {
+            let solutionSpan = []
+
+            for (let i = 0; i < freeCols.length; i++) {
+                if (freeCols[i]) {
+                    let column = []
+                    for (let j = 0; j < matrix.length; j++) {
+                        column.push(math.multiply(matrix[j][i], -1))
+                    }
+
+                    column[i] = 1
+
+                    solutionSpan.push(column)
+                }
+            }
+
+            let outputCol = []
+            let homogenous = true
+
+            for (let i = 0; i < matrix.length; i++) {
+                if (!math.equal(matrix[i][matrix[0].length - 1], 0)) {
+                    homogenous = false
+                }
+                outputCol.push(matrix[i][matrix[0].length - 1])
+            }
+
+            if (!homogenous) {
+                solutionSpan.push(outputCol)
+            }
+
+            let mathJax = '$$\\text{Span}\\left\\{'
+
+            solutionSpan.map((vector) => (
+                mathJax += vectorToMathJax(vector)
+            ))
+
+            mathJax += '\\right\\}$$'
+
+            steps.push({ mathJax, description: 'Solution.'})
         }
     }
 
@@ -131,6 +230,15 @@ export function gaussianElimination(matrix) {
 
     evaluateMatrix(matrix)
     forwardElimination(matrix)
+
+    if (!isConsistent(matrix)) {
+        return steps
+    }
+
+    backwardSubstitution(matrix)
+    
+    findSolution(matrix)
+
 
     return steps
 }
