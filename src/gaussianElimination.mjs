@@ -14,13 +14,15 @@ function numberToMathJax(number) {
     }
 }
 
-export function matrixToMathJax(matrix, highlightRow, highlightCol) {
+export function matrixToMathJax(matrix, highlightRows, highlightCols) {
+    let highlightedRows = highlightRows ?? []
+    let highlightedCols = highlightCols ?? []
 
     let mathJax = `\\left[\\begin{array}{${'r'.repeat(matrix[0].length - 1)}|r}`
 
     mathJax += matrix.map((row, i) => (
         row.map((entry, j) => (
-            i === highlightRow && j === highlightCol ? 
+            highlightedRows.includes(i) && highlightedCols.includes(j) ? 
             ` \\class{highlight}{${numberToMathJax(entry)}}` : numberToMathJax(entry)
         )).join('&')
     )).join('\\\\')
@@ -60,7 +62,7 @@ export function gaussianElimination(matrix) {
             for (let row = pivots; row < matrix.length; row++) {
                 if (!math.equal(matrix[row][col], 0)) {
                 
-                    steps.push({ mathJax: '$$' + matrixToMathJax(matrix, row, col) + '$$', description: pivots === 0 ? 'Begin by locating our first pivot.' : 'Continue by locating our next pivot.'})
+                    steps.push({ mathJax: '$$' + matrixToMathJax(matrix, [row], [col]) + '$$', description: pivots === 0 ? 'Begin by locating our first pivot.' : 'Continue by locating our next pivot.'})
 
                     if (row !== pivots) {
                         swapRows(matrix, row, pivots, 'Swap rows so that the pivot is in its upmost position.')
@@ -90,7 +92,6 @@ export function gaussianElimination(matrix) {
                     for (let k = row - 1; k >= 0; k--) {
                         if (!math.equal(matrix[k][col], 0)) {
                             addRows(matrix, k, row, math.multiply(matrix[k][col], -1), `Eliminate \\(${numberToMathJax(matrix[k][col])}\\) from row ${k + 1} by adding \\(${numberToMathJax(math.multiply(matrix[k][col], -1))}\\) times row ${row + 1} to it.`)
-                            break
                         }
                     }
                     break
@@ -116,7 +117,7 @@ export function gaussianElimination(matrix) {
             }
 
             if (!hasPivot) {
-                steps.push({ mathJax: '$$' + matrixToMathJax(matrix, row, matrix[0].length - 1) + '$$', description: 'The system has no solutions because there is a pivot in the output column.'})
+                steps.push({ mathJax: '$$' + matrixToMathJax(matrix, [row], [matrix[0].length - 1]) + '$$', description: 'The system has no solutions because there is a pivot in the output column.'})
                 return false
             }
         }
@@ -144,46 +145,9 @@ export function gaussianElimination(matrix) {
                 solutions[pivots[i].col] = matrix[pivots[i].row][matrix[0].length - 1]
             }
 
-            steps.push({ mathJax: '$$\\vec{x}=' + vectorToMathJax(solutions) + '$$', description: 'Solution.'})
+            steps.push({ mathJax: '$$\\vec{x}=' + vectorToMathJax(solutions) + '$$', description: 'Because there is a pivot in every column, the system has one unique solution:'})
         } else {
-            let solutionSpan = []
-
-            for (let i = 0; i < freeCols.length; i++) {
-                if (freeCols[i]) {
-                    let column = []
-                    for (let j = 0; j < matrix.length; j++) {
-                        column.push(math.multiply(matrix[j][i], -1))
-                    }
-
-                    column[i] = 1
-
-                    solutionSpan.push(column)
-                }
-            }
-
-            let outputCol = []
-            let homogenous = true
-
-            for (let i = 0; i < matrix.length; i++) {
-                if (!math.equal(matrix[i][matrix[0].length - 1], 0)) {
-                    homogenous = false
-                }
-                outputCol.push(matrix[i][matrix[0].length - 1])
-            }
-
-            if (!homogenous) {
-                solutionSpan.push(outputCol)
-            }
-
-            let mathJax = '$$\\text{Span}\\left\\{'
-
-            solutionSpan.map((vector) => (
-                mathJax += vectorToMathJax(vector)
-            ))
-
-            mathJax += '\\right\\}$$'
-
-            steps.push({ mathJax, description: 'Solution.'})
+            steps.push({ mathJax: '$$' + matrixToMathJax(matrix) + '$$', description: 'Because there are free columns in the reduced echelon form, the system has infinite solutions.'})
         }
     }
 

@@ -14,7 +14,8 @@ function App() {
 
   const [ matrix, setMatrix ] = useState(Array(3).fill().map(() => Array(4).fill(0)))
   const [ steps, setSteps ] = useState([])
-  const [ stepsShown, setStepsShown ] = useState(0)
+  const [ stepsShown, setStepsShown ] = useState(1)
+  const [ invalidMatrix, setInvalidMatrix ] = useState(false)
 
   const handleChange = (row, col, event) => {
     let { value } = event.target;
@@ -45,6 +46,10 @@ function App() {
   }
 
   const calculate = () => {
+    setInvalidMatrix(false)
+    setSteps([])
+    setStepsShown(0)
+
     const newMatrix = [...matrix]
 
     try {
@@ -54,9 +59,8 @@ function App() {
         ))
       ))
       setSteps(gaussianElimination(newMatrix))
-      stepsShown(0)
     } catch {
-      console.log('invalid matrix')
+      setInvalidMatrix(true)
     }
     
   }
@@ -99,13 +103,15 @@ function App() {
 
   return (
     <div className='page'>
-      <h1>Step-by-Step Gaussian Elimination</h1>
-      <h2>Input</h2>
+      <h1 className='title'>📚 Step-by-Step Gaussian Elimination</h1>
+      <p>Welcome! This website guides you through each step of Gaussian elimination, making it easy to learn and understand the process. Simply input the size of your matrix, enter the augmented form, and press "Calculate" to see a step-by-step solution.</p>
       <table>
         <thead>
           <tr>
           { matrix[0].map((_, i) => (
-            i === matrix[0].length - 1 ? <th key={i}><MathJax>{`$$b$$`}</MathJax></th> : <th key={i}><MathJax>{` $$ x_${i + 1} $$ `}</MathJax></th>
+            i === matrix[0].length - 1 ? 
+            <th key={i + 'b'}><MathJax>{`$$b$$`}</MathJax></th> : 
+            <th key={i + 'x'}><MathJax>{`$$x_${i+1}$$`}</MathJax></th>
           ))
           }
           </tr>
@@ -150,26 +156,34 @@ function App() {
         </select>
       </div>
       <button onClick={calculate}>Calculate!</button>
+      {
+        invalidMatrix && (
+          <p className='invalid'>Invalid Matrix!</p>
+        )
+      }
 
       {
         (steps.length !== 0)
         && (
-          <div>
-            <h2>Solution</h2>
+          <div className='solution'>
+            <h2>Solution 📝</h2>
             {
               steps.map((step, i) => (
-                  <div key={step.mathJax} >
+                  <div key={step.mathJax} className={i <= stepsShown ? '' : 'hidden'}>
                     <MathJax className='description'>{step.description}</MathJax>
                     <MathJax>{step.mathJax}</MathJax>
                   </div>
               ))
             }
-            <button onClick={nextStep}>Next Step</button>
-            <button onClick={showAllSteps}>Show All Steps</button>
+            <div className={stepsShown === steps.length - 1 ? 'hidden' : 'step-selector'}>
+              <button onClick={nextStep}>Next Step</button>
+              <button onClick={showAllSteps}>Show All Steps</button>
+            </div>
           </div>
         )
       }
-       <MathJax style={{display: 'none'}}>{"$$\\class{highlight}{x}$$"}</MathJax>
+      <p className='footer'>Created by Niko Dittmar for UC Berkeley EECS 16A.</p>
+      <MathJax style={{display: 'none'}}>{"$$\\class{highlight}{x}$$"}</MathJax>
     </div>
   );
 }
