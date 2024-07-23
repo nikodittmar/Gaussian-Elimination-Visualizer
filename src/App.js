@@ -175,7 +175,7 @@ function App() {
                   </div>
               ))
             }
-            <div className={stepsShown === steps.length - 1 ? 'hidden' : 'step-selector'}>
+            <div className={stepsShown >= steps.length - 1 ? 'hidden' : 'step-selector'}>
               <button onClick={nextStep}>Next Step</button>
               <button onClick={showAllSteps}>Show All Steps</button>
             </div>
