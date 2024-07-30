@@ -147,7 +147,62 @@ export function gaussianElimination(matrix) {
 
             steps.push({ mathJax: '$$\\vec{x}=' + vectorToMathJax(solutions) + '$$', description: 'Because there is a pivot in every column, the system has one unique solution:'})
         } else {
-            steps.push({ mathJax: '$$' + matrixToMathJax(matrix) + '$$', description: 'Because there are free columns in the reduced echelon form, the system has infinite solutions.'})
+            // Convert matrix back to system of equations
+            let equations = []
+            for (let row = 0; row < matrix.length; row++) {
+                let equation = ''
+                for (let col = 0; col < matrix[0].length - 1; col++) {
+                    if (!math.equal(matrix[row][col], 0)) {
+                        let coeff = math.equal(matrix[row][col], 1) ? '' : numberToMathJax(matrix[row][col])
+                        equation += `${coeff}x_${col + 1} + `
+                    }
+                }
+                equation = equation.slice(0, -3) + ` = ${numberToMathJax(matrix[row][matrix[0].length - 1])}`
+                equations.push(equation)
+            }
+            steps.push({ mathJax: '$$\\left\\{\\begin{array}{l}' + equations.join('\\\\') + '\\end{array}\\right.$$',
+                          description: 'Convert the matrix to a system of equations.'})
+
+            // Solve for each variable in terms of the free variables
+            let solutions = Array(matrix[0].length - 1).fill('')
+            pivots.forEach(({ row, col }) => {
+                let solution = `${numberToMathJax(matrix[row][matrix[0].length - 1])}`
+                for (let k = col + 1; k < matrix[0].length - 1; k++) {
+                    if (!math.equal(matrix[row][k], 0)) {
+                        let coeff = math.equal(matrix[row][k], 1) ? '' : numberToMathJax(matrix[row][k])
+                        solution += ` - ${coeff}x_${k + 1}`
+                    }
+                }
+                solution = solution.replace(/^0\s*-\s*/, '') // Remove leading "0 -" if present
+                solutions[col] = solution
+            })
+
+            steps.push({ mathJax: '$$\\left\\{\\begin{array}{l}' + solutions.map((sol, i) => `x_${i + 1} = ${sol || `x_${i + 1}`}`).join('\\\\') + '\\end{array}\\right.$$', description: 'Solve for each variable and list the free variables.'})
+
+            // Determine the indices of free variables
+            let freeVariableIndices = freeCols.map((isFree, index) => (isFree ? index : -1)).filter(index => index !== -1);
+
+            // Convert coefficients into vectors for the parametric form
+            let parametricVectors = freeVariableIndices.map((freeIndex) => (
+                Array(matrix[0].length - 1).fill(0).map((_, rowIndex) => (
+                    rowIndex === freeIndex ? 1 : pivots.find(p => p.col === rowIndex)?.row >= 0 ? math.multiply(matrix[pivots.find(p => p.col === rowIndex).row][freeIndex], -1) : 0
+                ))
+            ))
+
+            let constants = Array(matrix[0].length - 1).fill(0)
+            pivots.forEach(({ row, col }) => {
+                constants[col] = math.fraction(matrix[row][matrix[0].length - 1])
+            })
+
+            if (constants.every(val => math.equal(val, 0))) {
+                constants = ''
+            } else {
+                constants = vectorToMathJax(constants) + '+'
+            }
+
+            // Construct parametric form string with correct free variable indexing
+            let parametricForm = parametricVectors.map((vec, index) => `x_{${freeVariableIndices[index] + 1}}${vectorToMathJax(vec)}`).join(' + ')
+            steps.push({ mathJax: `$$${constants}${parametricForm}$$`, description: 'Convert the coefficients of each free variable into vectors to use for the parametric form.'})
         }
     }
 
@@ -202,7 +257,6 @@ export function gaussianElimination(matrix) {
     backwardSubstitution(matrix)
     
     findSolution(matrix)
-
 
     return steps
 }
