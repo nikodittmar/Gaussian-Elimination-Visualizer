@@ -24,6 +24,10 @@ html, body {
   color: red;
 }
 
+.highlight_alt {
+  color: blue;
+}
+
 mjx-container[jax="CHTML"][display="true"] { 
   margin: 12px !important;
 }

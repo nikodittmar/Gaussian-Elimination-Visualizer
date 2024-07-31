@@ -59,7 +59,8 @@ function App() {
         ))
       ))
       setSteps(gaussianElimination(newMatrix))
-    } catch {
+    } catch (err) {
+      console.log(err)
       setInvalidMatrix(true)
     }
     
@@ -169,7 +170,7 @@ function App() {
             <h2>Solution 📝</h2>
             {
               steps.map((step, i) => (
-                  <div key={step.mathJax} className={i <= stepsShown ? '' : 'hidden'}>
+                  <div key={step.mathJax + step.description} className={i <= stepsShown ? '' : 'hidden'}>
                     <MathJax className='description'>{step.description}</MathJax>
                     <MathJax>{step.mathJax}</MathJax>
                   </div>
