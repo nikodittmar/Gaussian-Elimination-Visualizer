@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/gaussian-elimination-visualizer/static/css/main.6a5aa7a0.css",
-    "main.js": "/gaussian-elimination-visualizer/static/js/main.9acd7eb7.js",
+    "main.css": "/gaussian-elimination-visualizer/static/css/main.cebf1332.css",
+    "main.js": "/gaussian-elimination-visualizer/static/js/main.5e3ee61b.js",
     "static/js/453.47f986d7.chunk.js": "/gaussian-elimination-visualizer/static/js/453.47f986d7.chunk.js",
     "index.html": "/gaussian-elimination-visualizer/index.html",
-    "main.6a5aa7a0.css.map": "/gaussian-elimination-visualizer/static/css/main.6a5aa7a0.css.map",
-    "main.9acd7eb7.js.map": "/gaussian-elimination-visualizer/static/js/main.9acd7eb7.js.map",
+    "main.cebf1332.css.map": "/gaussian-elimination-visualizer/static/css/main.cebf1332.css.map",
+    "main.5e3ee61b.js.map": "/gaussian-elimination-visualizer/static/js/main.5e3ee61b.js.map",
     "453.47f986d7.chunk.js.map": "/gaussian-elimination-visualizer/static/js/453.47f986d7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.6a5aa7a0.css",
-    "static/js/main.9acd7eb7.js"
+    "static/css/main.cebf1332.css",
+    "static/js/main.5e3ee61b.js"
   ]
 }
