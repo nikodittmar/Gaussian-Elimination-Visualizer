@@ -239,14 +239,14 @@ export function gaussianElimination(matrix) {
                 for (let k = col + 1; k < matrix[0].length - 1; k++) {
                     if (!math.equal(matrix[row][k], 0)) {
                         let coeff = math.equal(matrix[row][k], 1) ? '' : numberToMathJax(matrix[row][k])
-                        solution += ` - ${coeff}x_${k + 1}`
+                        solution += ` - ${coeff}h_${k + 1}`
                     }
                 }
                 solution = solution.replace(/^0\s*-\s*/, '') // Remove leading "0 -" if present
                 solutions[col] = solution
             })
 
-            steps.push({ mathJax: '$$\\left\\{\\begin{array}{l}' + solutions.map((sol, i) => `x_${i + 1} = ${sol || `x_${i + 1}`}`).join('\\\\') + '\\end{array}\\right.$$', description: 'Solve for each variable and list the free variables.'})
+            steps.push({ mathJax: '$$\\left\\{\\begin{array}{l}' + solutions.map((sol, i) => `x_${i + 1} = ${sol || `h_${i + 1}`}`).join('\\\\') + '\\end{array}\\right.$$', description: 'Solve for each variable and list the free variables.'})
 
             // Determine the indices of free variables
             let freeVariableIndices = freeCols.map((isFree, index) => (isFree ? index : -1)).filter(index => index !== -1);
