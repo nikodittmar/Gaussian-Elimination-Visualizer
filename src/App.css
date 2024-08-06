@@ -21,11 +21,11 @@ html, body {
 }
 
 .highlight {
-  color: red;
+  color: rgb(235, 69, 92);
 }
 
 .highlight_alt {
-  color: blue;
+  color: rgb(83, 182, 237);
 }
 
 mjx-container[jax="CHTML"][display="true"] { 
