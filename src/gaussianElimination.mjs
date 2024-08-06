@@ -93,7 +93,7 @@ export function gaussianElimination(matrix) {
     function evaluateMatrix(matrix) {
         matrix.map((row, i) => (
             row.map((entry, k) => (
-                matrix[i][k] = math.fraction(String(math.evaluate(String(entry))))
+                matrix[i][k] = math.fraction(entry)
             ))
         ))
     }
